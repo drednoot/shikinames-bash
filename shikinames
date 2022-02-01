@@ -2,11 +2,13 @@
 # bash implementation of shikinames
 source $(dirname $0)/consts
 
-get_tokens () {
+request_tokens () {
+        # link to shikinames shikimori's authorization page
         echo $AUTHORIZATION_PAGE
         echo "insert the authorization token"
         read token
 
+        # request for access and refresh tokens
         local result=$(curl -X POST "https://shikimori.one/oauth/token" \
                 -H "User-Agent: shikinames" \
                 -F grant_type="authorization_code" \
@@ -15,16 +17,81 @@ get_tokens () {
                 -F code="${token}" \
                 -F redirect_uri="urn:ietf:wg:oauth:2.0:oob")
 
+        # parsing json for errors
         local err=$(echo "$result" | grep -Po "error\"")
         if [[ $err = 'error"' ]] 
         then
+                # returning error if something goes wrong
                 echo $result
+                exit 1 
         else
+                # parsing json for tokens
                 access=$(echo "$result" | grep -Po "access_token\":\"\K[^\"]*")
                 refresh=$(echo "$result" | grep -Po "refresh_token\":\"\K[^\"]*")
         fi
 } 
 
+get_anime () {
+       local result=$(curl -X GET "$URL$id" \
+               -H "User-Agent: shikinames" \
+               -H "Authorization: Bearer $access")
+       echo $result
+}
+
+
+
+refresh_tokens () {
+        echo WIP
+}
+
+get_tokens_from_cfg () {
+        local cfg=$(cat ${CONFIG_PATH})
+        access=$(echo $cfg | grep -Po "access=\K([a-zA-Z0-9-]*[^;])")
+        refresh=$(echo $cfg | grep -Po "refresh=\K([a-zA-Z0-9-]*[^;])")
+        # check if access is empty
+        echo $refresh
+        if [[ $access = "" ]]
+        then
+                # if it is, then that means there were never a request
+                request_tokens
+                write_tokens
+        fi
+}
+
+write_tokens () {
+        # simply writing to the file
+        echo -e "access=${access};\nrefresh=${refresh};" > \
+                ${CONFIG_PATH}
+}
+
+
+
+get_id_from_link () {
+        echo Input the link to the desired anime:
+        read link 
+        id=$(echo $link | grep -Po "/\K\d+")
+        if [[ id = "" ]]
+        then
+                echo You entered wrong link
+                exit 1
+        fi
+        echo link parsing successful
+        echo anime id is $id 
+}
 
 # main functionality
-get_tokens
+# creating config file (checking if it exists)
+if [[ -f "${CONFIG_PATH}" ]]
+then
+        echo config file already exists
+else
+        mkdir -p "${CONFIG_FOLDER}"
+        touch "${CONFIG_PATH}"
+        echo config file created in ${CONFIG_PATH}
+fi
+
+#request_tokens
+#write_tokens
+get_tokens_from_cfg
+get_id_from_link
+get_anime
