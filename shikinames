@@ -1,4 +1,30 @@
 #!/usr/bin/env bash
 # bash implementation of shikinames
+source $(dirname $0)/consts
+
+get_tokens () {
+        echo $AUTHORIZATION_PAGE
+        echo "insert the authorization token"
+        read token
+
+        local result=$(curl -X POST "https://shikimori.one/oauth/token" \
+                -H "User-Agent: shikinames" \
+                -F grant_type="authorization_code" \
+                -F client_id="atgTM364dtiQBh2uz5r5wbLaLjQesCKBCb3CvbHFPXA" \
+                -F client_secret="WQu9MhHVx0OKs0yXe3BpT089M4QW3wwwRUGztq_q4JE" \
+                -F code="${token}" \
+                -F redirect_uri="urn:ietf:wg:oauth:2.0:oob")
+
+        local err=$(echo "$result" | grep -Po "error\"")
+        if [[ $err = 'error"' ]] 
+        then
+                echo $result
+        else
+                access=$(echo "$result" | grep -Po "access_token\":\"\K[^\"]*")
+                refresh=$(echo "$result" | grep -Po "refresh_token\":\"\K[^\"]*")
+        fi
+} 
 
 
+# main functionality
+get_tokens
