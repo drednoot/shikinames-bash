@@ -4,8 +4,9 @@ source $(dirname $0)/consts
 
 request_tokens () {
 	# link to shikinames shikimori's authorization page
+	echo Tokens were not found, copy the link from authorization page:
 	echo $AUTHORIZATION_PAGE
-	echo "insert the authorization token"
+	echo and insert the authorization token
 	read token
 
 	# request for access and refresh tokens
@@ -19,7 +20,7 @@ request_tokens () {
 
 	# parsing json for errors
 	local err=$(echo "$result" | jq --raw-output ".error")
-	if [[ $err = "" ]] 
+	if [[ $err != "null" ]] 
 	then
 		# returning error if something goes wrong
 		echo $result
@@ -28,6 +29,7 @@ request_tokens () {
 		# parsing json for tokens
 		access=$(echo "$result" | jq --raw-output ".access_token")
 		refresh=$(echo "$result" | jq --raw-output ".refresh_token")
+		echo Tokens were acquired
 	fi
 } 
 
@@ -41,18 +43,19 @@ get_anime_json () {
 	request_anime_json
 
 	# parsing json for errors
-	local err=$(echo "$result" | jq --raw-output ".error")
-	if [[ $err = "" ]] 
+	local err=$(echo "$anime_json" | jq --raw-output ".error")
+	if [[ $err != "null" ]] 
 	then
 		# invalid token behavour
-		echo $result
+		echo $anime_json
 		echo Your token is probaby invalid.
 		echo Updating token...
 		refresh_tokens
 		request_anime_json
 		local err=$(echo "$anime_json" | jq --raw-output ".error")
-		if [[ $err = "" ]] 
+		if [[ $err = "null" ]] 
 		then
+			# something else more obscure happened
 			echo $anime_json
 		fi
 	fi
@@ -60,15 +63,15 @@ get_anime_json () {
 
 get_names_from_json () {
 	# name
-	local name=$(echo $anime_json | grep -Po "\"name\":\"\K[^\"]")
+	local name=$(echo $anime_json | jq --raw-output ".name")
 	# english names
-	local english=$(echo $anime_json | grep -Po "\"english\":\"\[\K[^\"][^\]]")
+	local english=$(echo $anime_json | jq --raw-output ".english[]")
 	# russian name
-	local russian=$(echo $anime_json | grep -Po "\"russian\":\"\K[^\"]")
+	local russian=$(echo $anime_json | jq --raw-output ".russian")
 	# synonyms
-	local synonyms=$(echo $anime_json | grep -Po "\"synonyms\":\"\[\K[^\"][^\]]")
+	local synonyms=$(echo $anime_json | jq --raw-output ".synonyms[]")
 
-	echo $name $english $russian $synonyms
+	echo $synonyms
 }
 
 refresh_tokens () {
@@ -80,7 +83,7 @@ refresh_tokens () {
 		-F refresh_token="$refresh")
 
 	local err=$(echo "$result" | jq --raw-output ".error")
-	if [[ $err = 'error"' ]] 
+	if [[ $err != "null" ]] 
 	then
 		# returning error if something goes wrong
 		echo $result
@@ -97,9 +100,11 @@ refresh_tokens () {
 
 get_tokens_from_cfg () {
 	local cfg=$(cat ${CONFIG_PATH})
-	access=$(echo $cfg | grep -Po "access=\K([a-zA-Z0-9-]*[^;])")
-	refresh=$(echo $cfg | grep -Po "refresh=\K([a-zA-Z0-9-]*[^;])")
+	access=$(echo $cfg | grep -Po "access=\K([a-zA-Z0-9-_]*[^;])")
+	refresh=$(echo $cfg | grep -Po "refresh=\K([a-zA-Z0-9-_]*[^;])")
 	# check if access is empty
+	echo Tokens were successfully found
+	#echo $access $refresh
 	if [[ $access = "" ]]
 	then
 		# if it is, then that means there were never a request
@@ -112,6 +117,8 @@ write_tokens () {
 	# simply writing to the file
 	echo -e "access=${access};\nrefresh=${refresh};" > \
 		${CONFIG_PATH}
+	echo Tokens were written to $CONFIG_PATH
+	#echo $(cat "$CONFIG_PATH")
 }
 
 
@@ -125,7 +132,7 @@ get_id_from_link () {
 		echo You entered wrong link
 		exit 1
 	fi
-	echo link parsing successful
+	echo Link parsing successful
 	echo anime id is $id 
 }
 
@@ -133,17 +140,22 @@ get_id_from_link () {
 # creating config file (checking if it exists)
 if [[ -f "${CONFIG_PATH}" ]]
 then
-	echo config file already exists
+	echo Config file already exists
 else
 	mkdir -p "${CONFIG_FOLDER}"
 	touch "${CONFIG_PATH}"
-	echo config file created in ${CONFIG_PATH}
+	echo Config file created in ${CONFIG_PATH}
 fi
 
-request_tokens
+#request_tokens
 #write_tokens
-#get_tokens_from_cfg
-#get_id_from_link
-#get_anime_json
-#get_names_from_json
-#echo $anime_json
+get_tokens_from_cfg
+get_id_from_link
+get_anime_json
+get_names_from_json
+
+# todo:
+# print the output function
+# argv parser
+# force-update tokens
+# make a propper logging maybe?
