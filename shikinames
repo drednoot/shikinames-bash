@@ -53,10 +53,11 @@ get_anime_json () {
 		refresh_tokens
 		request_anime_json
 		local err=$(echo "$anime_json" | jq --raw-output ".error")
-		if [[ $err = "null" ]] 
+		if [[ $err != "null" ]] 
 		then
 			# something else more obscure happened
 			echo $anime_json
+			exit 1
 		fi
 	fi
 }
@@ -65,13 +66,20 @@ get_names_from_json () {
 	# name
 	local name=$(echo $anime_json | jq --raw-output ".name")
 	# english names
-	local english=$(echo $anime_json | jq --raw-output ".english[]")
+	local english="null"
+	readarray -t english < <(echo $anime_json | jq --raw-output ".english[]")
 	# russian name
 	local russian=$(echo $anime_json | jq --raw-output ".russian")
 	# synonyms
-	local synonyms=$(echo $anime_json | jq --raw-output ".synonyms[]")
+	local synonyms="null"
+	readarray -t synonyms < <(echo $anime_json | jq --raw-output ".synonyms[]")
 
-	echo $synonyms
+	#echo $name $english $russian $synonyms
+
+	names_arr=("${name}")
+	names_arr+=("${english[@]}")
+	names_arr+=("${russian}")
+	names_arr+=("${synonyms[@]}")
 }
 
 refresh_tokens () {
@@ -136,6 +144,18 @@ get_id_from_link () {
 	echo anime id is $id 
 }
 
+
+
+make_form () {
+	echo ""
+	for i in "${names_arr[@]}"
+	do
+		echo $i
+	done
+	echo "(Приват, чек закреп)"
+	echo -e "\nShikimori"
+	echo $link
+}
 # main functionality
 # creating config file (checking if it exists)
 if [[ -f "${CONFIG_PATH}" ]]
@@ -153,6 +173,7 @@ get_tokens_from_cfg
 get_id_from_link
 get_anime_json
 get_names_from_json
+make_form  
 
 # todo:
 # print the output function
