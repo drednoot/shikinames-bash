@@ -1,0 +1,26 @@
+--help or -h
+    use to open this menu and terminate
+
+--clipboard or -c
+    use to copy entire output to clipboard
+
+--private or -p
+    use to add additional line
+
+# --file <path> or -f <path> (WIP)
+#   download shikimori page using Ctrl+S on a page
+#   and parse it.
+#   (offline)
+
+--sovetromantica or -sr <request>
+    use to add additional line
+    about sovetromantica bot.
+    request - request line for the bot
+
+--show or -s
+    show the contents of copied text
+    (only useful when used with --clipboard)
+
+--make_list <count of lines>
+    list maker little program that takes telegram link
+    and outputs consecutive other links

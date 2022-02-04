@@ -157,6 +157,17 @@ make_form () {
 	echo $link
 }
 # main functionality
+
+# argv parser
+for arg in "$@"
+do
+	if [[ "$arg" = "-h" ]] || [[ "$arg" = "--help" ]]
+	then
+		cat "$(dirname $0)/argv"
+		exit 0
+	fi
+done
+
 # creating config file (checking if it exists)
 if [[ -f "${CONFIG_PATH}" ]]
 then
@@ -176,7 +187,6 @@ get_names_from_json
 make_form  
 
 # todo:
-# print the output function
 # argv parser
 # force-update tokens
 # make a propper logging maybe?
