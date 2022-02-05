@@ -135,7 +135,7 @@ get_id_from_link () {
 	echo Input the link to the desired anime:
 	read link 
 	id=$(echo $link | grep -Po "/\K\d+")
-	if [[ id = "" ]]
+	if [[ ${id} = "" ]]
 	then
 		echo You entered wrong link
 		exit 1
@@ -147,12 +147,11 @@ get_id_from_link () {
 
 
 make_form () {
-	echo ""
 	for i in "${names_arr[@]}"
 	do
-		echo $i
+		echo -e "$i"
 	done
-	echo "(Приват, чек закреп)"
+	echo -e "(Приват, чек закреп)"
 	echo -e "\nShikimori"
 	echo $link
 }
@@ -184,7 +183,8 @@ get_tokens_from_cfg
 get_id_from_link
 get_anime_json
 get_names_from_json
-make_form  
+#wl-copy "$(make_form)"  
+#make_form
 
 # todo:
 # argv parser
