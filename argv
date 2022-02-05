@@ -12,7 +12,7 @@
 #   and parse it.
 #   (offline)
 
---sovetromantica or -sr <request>
+--sovetromantica=<request> or -sr=<request>
     use to add additional line
     about sovetromantica bot.
     request - request line for the bot

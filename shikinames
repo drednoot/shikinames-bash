@@ -112,7 +112,7 @@ get_tokens_from_cfg () {
 	refresh=$(echo $cfg | grep -Po "refresh=\K([a-zA-Z0-9-_]*[^;])")
 	# check if access is empty
 	echo Tokens were successfully found
-	#echo $access $refresh
+	echo $access $refresh
 	if [[ $access = "" ]]
 	then
 		# if it is, then that means there were never a request
@@ -126,7 +126,7 @@ write_tokens () {
 	echo -e "access=${access};\nrefresh=${refresh};" > \
 		${CONFIG_PATH}
 	echo Tokens were written to $CONFIG_PATH
-	#echo $(cat "$CONFIG_PATH")
+	echo $(cat "$CONFIG_PATH")
 }
 
 
@@ -160,10 +160,31 @@ make_form () {
 # argv parser
 for arg in "$@"
 do
+	IFS='=' read -ra arg <<< "$arg"
 	if [[ "$arg" = "-h" ]] || [[ "$arg" = "--help" ]]
 	then
 		cat "$(dirname $0)/argv"
 		exit 0
+	fi
+	if [[ "$arg" = "-c" ]] || [[ "$arg" = "--clipboard" ]]
+	then
+		clipboard=1
+	fi
+	if [[ "$arg" = "-p" ]] || [[ "$arg" = "--private" ]]
+	then
+		private=1
+	fi
+	if [[ "$arg" = "-sr" ]] || [[ "$arg" = "--sovetromantica" ]]
+	then
+		sr=${arg[1]}
+	fi
+	if [[ "$arg" = "-s" ]] || [[ "$arg" = "--show" ]]
+	then
+		show=1
+	fi
+	if [[ "$arg" = "--make-list" ]]
+	then
+		mklist=${arg[1]}
 	fi
 done
 
