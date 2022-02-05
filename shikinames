@@ -105,6 +105,17 @@ refresh_tokens () {
 }
 
 
+create_cfg_file () {
+	# creating config file (checking if it exists)
+	if [[ -f "${CONFIG_PATH}" ]]
+	then
+		echo Config file already exists
+	else
+		mkdir -p "${CONFIG_FOLDER}"
+		touch "${CONFIG_PATH}"
+		echo Config file created in ${CONFIG_PATH}
+	fi
+}
 
 get_tokens_from_cfg () {
 	local cfg=$(cat ${CONFIG_PATH})
@@ -151,9 +162,31 @@ make_form () {
 	do
 		echo -e "$i"
 	done
-	echo -e "(Приват, чек закреп)"
+	if [[ -n $private ]]
+	then
+		echo -e "(Приват, чек закреп)"
+	fi
+
 	echo -e "\nShikimori"
 	echo $link
+
+	if [[ -n $sr ]]
+	then
+		if [[ $sr != '--' ]]
+		then
+			sr_query=${sr}
+		fi
+		echo -e "\nСерии доступны в боте эсеров по запросу"
+		echo \`\`\`$sr_query\`\`\`
+		echo Бот: https://t.me/sr_001_bot
+		echo 1/?
+	fi
+}
+
+get_sr_query () {
+	echo It seems you\'ve chosen \'--\' as your -sr argument
+	echo please input proper query here:
+	read sr_query
 }
 # main functionality
 
@@ -174,9 +207,15 @@ do
 	then
 		private=1
 	fi
-	if [[ "$arg" = "-sr" ]] || [[ "$arg" = "--sovetromantica" ]]
+	if [[ "$arg" = "--sr" ]] || [[ "$arg" = "--sovetromantica" ]]
 	then
 		sr=${arg[1]}
+		if [[ -z $sr ]]
+		then
+			echo usage:
+			echo --sovetromantica=\<request\> or -sr=\<request\>
+			exit 1
+		fi
 	fi
 	if [[ "$arg" = "-s" ]] || [[ "$arg" = "--show" ]]
 	then
@@ -185,29 +224,53 @@ do
 	if [[ "$arg" = "--make-list" ]]
 	then
 		mklist=${arg[1]}
+		if [[ -z $mklist ]]
+		then
+			echo usage:
+			echo --make-list=\<count of lines\>
+			exit 1
+		fi
 	fi
 done
 
-# creating config file (checking if it exists)
-if [[ -f "${CONFIG_PATH}" ]]
+if [[ -n $mklist ]]
 then
-	echo Config file already exists
-else
-	mkdir -p "${CONFIG_FOLDER}"
-	touch "${CONFIG_PATH}"
-	echo Config file created in ${CONFIG_PATH}
+	echo Input initial telegram link:
+	read link
+	parse_further=0
 fi
 
-#request_tokens
-#write_tokens
-get_tokens_from_cfg
-get_id_from_link
-get_anime_json
-get_names_from_json
-#wl-copy "$(make_form)"  
-#make_form
+if [[ -z $parse_further ]]
+then
+	get_id_from_link
+	create_cfg_file
+	get_tokens_from_cfg
+	get_anime_json
+	get_names_from_json
+	if [[ -n $sr ]] && [[ $sr = "--" ]]
+	then
+		get_sr_query
+	fi
+	if [[ -n $clipboard ]]
+	then
+		wl-copy "$(make_form)"  
+		echo ""
+		echo ==================================
+		echo Result is copied to the clipboard.
+		echo ==================================
+		if [[ -n $show ]]
+		then
+			echo ""
+			make_form
+		fi
+	else
+		echo ""
+		make_form
+	fi
+fi
 
 # todo:
-# argv parser
 # force-update tokens
+# mklist
 # make a propper logging maybe?
+# version
