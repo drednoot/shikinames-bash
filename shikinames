@@ -4,7 +4,7 @@ source $(dirname $0)/consts
 
 request_tokens () {
 	# link to shikinames shikimori's authorization page
-	echo Tokens were not found, copy the link from authorization page:
+	echo Tokens were not found \(forced to update\), copy the link from authorization page:
 	echo $AUTHORIZATION_PAGE
 	echo and insert the authorization token
 	read token
@@ -231,6 +231,10 @@ do
 			exit 1
 		fi
 	fi
+	if [[ "$arg" = "--force-update" ]] || [[ "$arg" = "-f" ]]
+	then
+		force=1
+	fi
 done
 
 if [[ -n $mklist ]]
@@ -242,9 +246,17 @@ fi
 
 if [[ -z $parse_further ]]
 then
+	if [[ -n $force ]]
+	then
+		request_tokens
+		write_tokens
+	fi
 	get_id_from_link
 	create_cfg_file
-	get_tokens_from_cfg
+	if [[ -z $force ]]
+	then
+		get_tokens_from_cfg
+	fi
 	get_anime_json
 	get_names_from_json
 	if [[ -n $sr ]] && [[ $sr = "--" ]]
@@ -270,7 +282,7 @@ then
 fi
 
 # todo:
-# force-update tokens
 # mklist
 # make a propper logging maybe?
 # version
+# argv parser support for multiple checks
