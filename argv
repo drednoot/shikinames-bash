@@ -16,7 +16,7 @@
     show the contents of copied text
     (only useful when used with --clipboard)
 
---make_list <count of lines>
+--make_list=<count of lines>
     list maker little program that takes telegram link
     and outputs consecutive other links
 

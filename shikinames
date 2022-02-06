@@ -158,6 +158,11 @@ get_id_from_link () {
 
 
 make_form () {
+	if [[ -n $mklist ]]
+	then
+		echo "$(make_list)"
+		return 0
+	fi
 	for i in "${names_arr[@]}"
 	do
 		echo -e "$i"
@@ -188,7 +193,18 @@ get_sr_query () {
 	echo please input proper query here:
 	read sr_query
 }
-# main functionality
+
+
+
+make_list () {
+	local id=$(($(echo $link | grep -Po "https://t.me/c/\d*/\K\d*")))	
+	local main_l=$(echo $link | grep -Po "https://t.me/c/\d*/")
+	for i in $(seq 1 ${mklist})
+	do
+		echo $i. $main_l$(($id+$i-1))
+	done	
+}
+################################################# main functionality
 
 # argv parser
 for arg in "$@"
@@ -263,26 +279,26 @@ then
 	then
 		get_sr_query
 	fi
-	if [[ -n $clipboard ]]
+fi
+
+if [[ -n $clipboard ]]
+then
+	wl-copy "$(make_form)"  
+	echo ""
+	echo ==================================
+	echo Result is copied to the clipboard.
+	echo ==================================
+	if [[ -n $show ]]
 	then
-		wl-copy "$(make_form)"  
-		echo ""
-		echo ==================================
-		echo Result is copied to the clipboard.
-		echo ==================================
-		if [[ -n $show ]]
-		then
-			echo ""
-			make_form
-		fi
-	else
 		echo ""
 		make_form
 	fi
+else
+	echo ""
+	make_form
 fi
 
 # todo:
-# mklist
 # make a propper logging maybe?
 # version
 # argv parser support for multiple checks
