@@ -10,3 +10,4 @@ it's just a bash script so installation is pretty straight forward
 - jq
 - cat
 - grep
+- date
