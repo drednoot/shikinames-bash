@@ -23,7 +23,8 @@ request_tokens () {
 	if [[ $err != "null" ]] 
 	then
 		# returning error if something goes wrong
-		echo $result
+		echo something went wrong
+		echo $result | iflog
 		exit 1 
 	else
 		# parsing json for tokens
@@ -47,7 +48,7 @@ get_anime_json () {
 	if [[ $err != "null" ]] 
 	then
 		# invalid token behavour
-		echo $anime_json
+		echo $anime_json | iflog
 		echo Your token is probaby invalid.
 		echo Updating token...
 		refresh_tokens
@@ -56,7 +57,8 @@ get_anime_json () {
 		if [[ $err != "null" ]] 
 		then
 			# something else more obscure happened
-			echo $anime_json
+			echo token  update failed.
+			echo $anime_json | iflog
 			exit 1
 		fi
 	fi
@@ -74,7 +76,7 @@ get_names_from_json () {
 	local synonyms="null"
 	readarray -t synonyms < <(echo $anime_json | jq --raw-output ".synonyms[]")
 
-	#echo $name $english $russian $synonyms
+	echo $name $english $russian $synonyms | iflog
 
 	names_arr=("${name}")
 	names_arr+=("${english[@]}")
@@ -94,7 +96,8 @@ refresh_tokens () {
 	if [[ $err != "null" ]] 
 	then
 		# returning error if something goes wrong
-		echo $result
+		echo something went wrong
+		echo $result | iflog
 		exit 1 
 	else
 		# parsing json for tokens
@@ -109,11 +112,11 @@ create_cfg_file () {
 	# creating config file (checking if it exists)
 	if [[ -f "${CONFIG_PATH}" ]]
 	then
-		echo Config file already exists
+		echo Config file already exists | iflog
 	else
 		mkdir -p "${CONFIG_FOLDER}"
 		touch "${CONFIG_PATH}"
-		echo Config file created in ${CONFIG_PATH}
+		echo Config file created in ${CONFIG_PATH} | iflog
 	fi
 }
 
@@ -122,8 +125,8 @@ get_tokens_from_cfg () {
 	access=$(echo $cfg | grep -Po "access=\K([a-zA-Z0-9-_]*[^;])")
 	refresh=$(echo $cfg | grep -Po "refresh=\K([a-zA-Z0-9-_]*[^;])")
 	# check if access is empty
-	echo Tokens were successfully found
-	echo $access $refresh
+	echo Tokens were successfully found | iflog
+	echo $access $refresh | iflog
 	if [[ $access = "" ]]
 	then
 		# if it is, then that means there were never a request
@@ -136,8 +139,8 @@ write_tokens () {
 	# simply writing to the file
 	echo -e "access=${access};\nrefresh=${refresh};" > \
 		${CONFIG_PATH}
-	echo Tokens were written to $CONFIG_PATH
-	echo $(cat "$CONFIG_PATH")
+	echo Tokens were written to $CONFIG_PATH | iflog
+	echo $(cat "$CONFIG_PATH") | iflog
 }
 
 
@@ -204,7 +207,21 @@ make_list () {
 		echo $i. $main_l$(($id+$i-1))
 	done	
 }
+
+
+
+iflog () {
+	read in 
+	if [[ -n $debug ]]
+	then
+		echo $in
+	fi
+	echo $in >> $CONFIG_FOLDER/log
+}
 ################################################# main functionality
+
+#clear the log file
+date > $CONFIG_FOLDER/log
 
 # argv parser
 for arg in "$@"
@@ -250,6 +267,10 @@ do
 	if [[ "$arg" = "--force-update" ]] || [[ "$arg" = "-f" ]]
 	then
 		force=1
+	fi
+	if [[ "$arg" = "-d" ]] || [[ "$arg" = "--debug" ]]
+	then
+		debug=1
 	fi
 done
 
@@ -300,5 +321,6 @@ fi
 
 # todo:
 # make a propper logging maybe?
+# getopts flags
 # version
-# argv parser support for multiple checks
+# ranobe and manga parsing
