@@ -320,7 +320,6 @@ else
 fi
 
 # todo:
-# make a propper logging maybe?
 # getopts flags
 # version
 # ranobe and manga parsing
