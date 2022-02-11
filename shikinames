@@ -192,7 +192,7 @@ make_form () {
 }
 
 get_sr_query () {
-	echo It seems you\'ve chosen \'--\' as your -sr argument
+	echo It seems you\'ve chosen \'--\' as your -S argument
 	echo please input proper query here:
 	read sr_query
 }
@@ -223,55 +223,21 @@ iflog () {
 #clear the log file
 date > $CONFIG_FOLDER/log
 
-# argv parser
-for arg in "$@"
+while getopts ":hcpsfdS:L:" opt
 do
-	IFS='=' read -ra arg <<< "$arg"
-	if [[ "$arg" = "-h" ]] || [[ "$arg" = "--help" ]]
-	then
+	case $opt in
+		h) echo "h"
 		cat "$(dirname $0)/argv"
 		exit 0
-	fi
-	if [[ "$arg" = "-c" ]] || [[ "$arg" = "--clipboard" ]]
-	then
-		clipboard=1
-	fi
-	if [[ "$arg" = "-p" ]] || [[ "$arg" = "--private" ]]
-	then
-		private=1
-	fi
-	if [[ "$arg" = "--sr" ]] || [[ "$arg" = "--sovetromantica" ]]
-	then
-		sr=${arg[1]}
-		if [[ -z $sr ]]
-		then
-			echo usage:
-			echo --sovetromantica=\<request\> or -sr=\<request\>
-			exit 1
-		fi
-	fi
-	if [[ "$arg" = "-s" ]] || [[ "$arg" = "--show" ]]
-	then
-		show=1
-	fi
-	if [[ "$arg" = "--make-list" ]]
-	then
-		mklist=${arg[1]}
-		if [[ -z $mklist ]]
-		then
-			echo usage:
-			echo --make-list=\<count of lines\>
-			exit 1
-		fi
-	fi
-	if [[ "$arg" = "--force-update" ]] || [[ "$arg" = "-f" ]]
-	then
-		force=1
-	fi
-	if [[ "$arg" = "-d" ]] || [[ "$arg" = "--debug" ]]
-	then
-		debug=1
-	fi
+		;;
+		c) clipboard=1;;
+		p) private=1;;
+		s) show=1;;
+		f) force=1;;
+		d) debug=1;;
+		S) sr=$OPTARG;;
+		L) mklist=$OPTARG;;
+	esac
 done
 
 if [[ -n $mklist ]]
@@ -320,6 +286,5 @@ else
 fi
 
 # todo:
-# getopts flags
 # version
 # ranobe and manga parsing

@@ -1,28 +1,28 @@
---help or -h
+-h
     use to open this menu and terminate
 
---clipboard or -c
+-c
     use to copy entire output to clipboard
 
---private or -p
+-p
     use to add additional line
 
---sovetromantica=<request> or --sr=<request>
+-S <request>
     use to add additional line
     about sovetromantica bot.
     request - request line for the bot
 
---show or -s
+-s
     show the contents of copied text
     (only useful when used with --clipboard)
 
---make_list=<count of lines>
+-L <count of lines>
     list maker little program that takes telegram link
     and outputs consecutive other links
 
---force-update or -f
+-f
 	force update tokens
 	might help if script is stuck on something
 
---debug or -d
+-d
 	show debug information
